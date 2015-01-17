@@ -1,0 +1,128 @@
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: html_document: keep_md: true
+---
+
+# Loading and preprocessing the data
+1.Load the data (i.e. read.csv())
+```{r}
+temp <- tempfile()
+url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+download.file(url,temp,method="curl")
+file <- read.csv(unzip(temp),header = TRUE,sep = ",",colClasses = "character")
+```
+
+2.Process/transform the data (if necessary) into a format suitable for your analysis
+```{r}
+file <- na.omit(file)
+file$steps <- as.numeric(file$steps)
+file$interval <- as.numeric(file$interval)
+file$date <- as.Date(file$date, "%Y-%m-%d")
+```
+# What is mean total number of steps taken per day?
+
+1.Make a histogram of the total number of steps taken each day
+```{r, echo=TRUE}
+agg_data <- aggregate(steps ~ date,file,sum)
+hist(agg_data$steps,main = 'Total number of steps taken each day',xlab = 'sum of daily steps')
+```
+
+2.Calculate and report the mean and median total number of steps taken per day
+
+```{r}
+summary(agg_data$steps)
+```
+# What is the average daily activity pattern?
+1.Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{r, echo=TRUE}
+agg_avg <- aggregate(steps ~ interval,file,mean)
+library(lattice)
+xyplot(steps~interval,data = agg_avg,type = "l",ylab = 'Number of steps')
+```
+
+2.Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```{r, echo=TRUE}
+print(agg_avg[which(agg_avg$steps == max(agg_avg$steps)),],row.names = FALSE)
+```
+
+# Imputing missing values
+
+1.Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+```{r, echo=TRUE}
+temp <- tempfile()
+url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+download.file(url,temp,method="curl")
+file <- read.csv(unzip(temp),header = TRUE,sep = ",",colClasses = "character")
+sum(is.na(file$steps))
+```
+
+2.Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+###To fill the missing Dataset below strategy has been applied:-
+1.Extracting missing values with NA and assigne them to dataset data.
+2.Matching the data for missing values with 5 minutes interval values from dataset data and replacing them with the Average values calculated under dataset avg_agg in previous problem.The datset data will then have values of NA replaced by Avg values from avg_agg. 
+3.Removing NA values from original dataset file.
+4.Merging the dataset data and dataset file after removing NA for dataset file.
+5.The new dataset avg_data_new with missing value replaced by Avg value at 5 minutes interval.
+
+```{r, echo=TRUE}
+temp <- tempfile()
+url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+download.file(url,temp,method="curl")
+file <- read.csv(unzip(temp),header = TRUE,sep = ",",colClasses = "character")
+file$steps <- as.numeric(file$steps)
+file$interval <- as.numeric(file$interval)
+file$date <- as.Date(file$date, "%Y-%m-%d")
+# Extracting missing values with NA 
+data <- file[is.na(file$steps),]
+# Matching the data for missing values with 5 minutes interval values from data and replacing them with the Average values calculated under avg_agg in previous problem.
+data$steps <- agg_avg$steps[match(file$interval,agg_avg$interval)][is.na(file$steps)]
+# Removing NA from intial file
+file <- na.omit(file)
+# Merging data collected from previous steps with file data after omiting NA
+new_data <- rbind(file,data)
+```
+
+3.Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+```{r, echo=TRUE}
+new_data <- rbind(file,data)
+```
+
+4.Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+```{r, echo=TRUE}
+agg_data_new <- aggregate(steps ~ date,new_data,sum)
+hist(agg_data_new$steps,main = 'Total number of steps taken each day',xlab = 'sum of daily steps')
+```
+
+```{r}
+summary(agg_data_new$steps)
+```
+
+# Are there differences in activity patterns between weekdays and weekends?
+
+1.Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+
+```{r, echo=TRUE}
+# Using library(chron) to use is.weekend() function
+library(chron)
+week_data <- cbind(new_data,"Weekdays" = weekdays(new_data$date),"Weekend" = is.weekend(new_data$date))
+```
+
+2.Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+
+```{r, echo=TRUE}
+# Extracting data for weekend and weekdays
+weekday_data <- week_data[week_data$Weekend == 'FALSE',c(1,3,5)]
+weekend_data <- week_data[week_data$Weekend == 'TRUE',c(1,3,5)]
+# Creating final data set for plot by merging data for weekdays and weekend for avergae steps at 5 minutes interval for each day.
+final_data <- rbind(cbind(aggregate(steps ~ interval,weekday_data,mean),"Weekend" = weekday_data$Weekend),cbind(aggregate(steps ~ interval,weekend_data,mean),"Weekend" = weekend_data$Weekend))
+final_data <- transform(final_data,Weekend = factor(Weekend,labels = c("Weekdays","Weekend")))
+# Plot data
+library(lattice)
+xyplot(steps~interval | Weekend,data = final_data,layout = c(1,2),type = "l",ylab = 'Number of steps')
+```

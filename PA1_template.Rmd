@@ -26,6 +26,7 @@ file$date <- as.Date(file$date, "%Y-%m-%d")
 agg_data <- aggregate(steps ~ date,file,sum)
 hist(agg_data$steps,main = 'Total number of steps taken each day',xlab = 'sum of daily steps')
 ```
+![image1.png](figure/image1.png?raw=true)
 
 2.Calculate and report the mean and median total number of steps taken per day
 
@@ -40,6 +41,7 @@ agg_avg <- aggregate(steps ~ interval,file,mean)
 library(lattice)
 xyplot(steps~interval,data = agg_avg,type = "l",ylab = 'Number of steps')
 ```
+![image2.png](figure/image2.png?raw=true)
 
 2.Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
@@ -98,7 +100,7 @@ new_data <- rbind(file,data)
 agg_data_new <- aggregate(steps ~ date,new_data,sum)
 hist(agg_data_new$steps,main = 'Total number of steps taken each day',xlab = 'sum of daily steps')
 ```
-
+![image3.png](figure/image3.png?raw=true)
 ```{r}
 summary(agg_data_new$steps)
 ```
@@ -126,3 +128,4 @@ final_data <- transform(final_data,Weekend = factor(Weekend,labels = c("Weekdays
 library(lattice)
 xyplot(steps~interval | Weekend,data = final_data,layout = c(1,2),type = "l",ylab = 'Number of steps')
 ```
+![image4.png](figure/image4.png?raw=true)

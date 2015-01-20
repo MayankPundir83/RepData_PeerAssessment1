@@ -33,6 +33,9 @@ hist(agg_data$steps,main = 'Total number of steps taken each day',xlab = 'sum of
 ```{r}
 summary(agg_data$steps)
 ```
+Mean = 10770
+median = 10760
+
 # What is the average daily activity pattern?
 1.Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
@@ -49,6 +52,8 @@ xyplot(steps~interval,data = agg_avg,type = "l",ylab = 'Number of steps')
 print(agg_avg[which(agg_avg$steps == max(agg_avg$steps)),],row.names = FALSE)
 ```
 
+interval = 835
+
 # Imputing missing values
 
 1.Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
@@ -60,6 +65,8 @@ download.file(url,temp,method="curl")
 file <- read.csv(unzip(temp),header = TRUE,sep = ",",colClasses = "character")
 sum(is.na(file$steps))
 ```
+
+total number of rows with NAs = 2304
 
 2.Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
@@ -104,6 +111,8 @@ hist(agg_data_new$steps,main = 'Total number of steps taken each day',xlab = 'su
 ```{r}
 summary(agg_data_new$steps)
 ```
+Mean = 10770
+median = 10770
 
 # Are there differences in activity patterns between weekdays and weekends?
 
